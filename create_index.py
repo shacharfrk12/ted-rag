@@ -5,6 +5,7 @@ import requests
 from pinecone import Pinecone
 from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
+from tqdm import tqdm
 
 
 ## this code will use the embedding model to create the vector index 
@@ -87,10 +88,33 @@ def add_chunks_to_index(index, chunks_df: pd.DataFrame, og_df_path: str):
     metadata_cols= og_df.columns.tolist() + ['chunk_id', 'chunk_transcript']
     all_df = chunks_df.merge(og_df, on='talk_id', how='left')
     all_df["vec_id"] = all_df.apply(lambda row: f"{row['talk_id']}_chunk_{row['chunk_id']}", axis=1)
-    for _, row in all_df.iterrows():
+    for _, row in tqdm(all_df.iterrows(), total=len(all_df), desc="Upserting vectors"):
         vector_id = f"{row['talk_id']}_chunk_{row['chunk_id']}"
         vector = row['embedding']
         metadata = {col: row[col] for col in metadata_cols}
+            
+        index.upsert(vectors=[(vector_id, vector, metadata)])
+
+def add_chunks_to_index_batch(index, chunks_df: pd.DataFrame, og_df_path: str, batch_size: int = 100):
+    og_df = pd.read_csv(og_df_path).drop(columns=['transcript'])
+    metadata_cols= og_df.columns.tolist() + ['chunk_id', 'chunk_transcript']
+    all_df = chunks_df.merge(og_df, on='talk_id', how='left')
+    all_df["vec_id"] = all_df.apply(lambda row: f"{row['talk_id']}_chunk_{row['chunk_id']}", axis=1)
+    
+    # Upsert in batches with progress bar
+    vectors_batch = []
+
+    for _, row in tqdm(all_df.iterrows(), total=len(all_df), desc="Upserting vectors"):
+        vector_id = f"{row['talk_id']}_chunk_{row['chunk_id']}"
+        vector = row['embedding']
+        metadata = {col: row[col] for col in metadata_cols}
+
+        vectors_batch.append((vector_id, vector, metadata))
+
+        # Upsert in batches
+        if len(vectors_batch) >= batch_size:
+            index.upsert(vectors=vectors_batch)
+            vectors_batch = []
             
         index.upsert(vectors=[(vector_id, vector, metadata)])
 
@@ -99,6 +123,13 @@ def run_full_pipeline(data_csv_path: str, og_df_path: str, index_name: str):
     chunks_with_embeddings_df = add_chunk_embedding(chunks_df)
     index = create_vector_index(index_name)
     add_chunks_to_index(index, chunks_with_embeddings_df, og_df_path)
+    
+
+def run_full_pipeline_batch(data_csv_path: str, og_df_path: str, index_name: str):
+    chunks_df = create_all_chunks(data_csv_path)
+    chunks_with_embeddings_df = add_chunk_embedding(chunks_df)
+    index = create_vector_index(index_name)
+    add_chunks_to_index_batch(index, chunks_with_embeddings_df, og_df_path)
 
 def main():
     # create_small_csv(SMALL_CSV_PATH, SMALL_CSV_PATH, num_rows=LEN_SMALL_CSV)
