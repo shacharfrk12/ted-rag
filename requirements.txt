@@ -1,0 +1,7 @@
+fastapi
+pandas
+python-dotenv
+langchain
+tqdm
+pinecone-client
+requests
