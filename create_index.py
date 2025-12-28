@@ -5,7 +5,7 @@ import requests
 from pinecone import Pinecone
 from dotenv import load_dotenv
 # from langchain_openai import OpenAIEmbeddings
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from tqdm import tqdm
 
 
