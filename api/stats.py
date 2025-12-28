@@ -7,16 +7,16 @@ from http.server import BaseHTTPRequestHandler
 import json
 import sys
 from pathlib import Path
+from Constants import CHUNK_SIZE, OVERLAP_RATIO, TOP_K
+
 
 
 class handler(BaseHTTPRequestHandler):
-    """HTTP handler for reporting current RAG hyperparameters."""
     def do_GET(self):
-        """Return chunking and retrieval settings as JSON."""
         response = {
-            "chunk_size": 0,
-            "overlap_ratio": 0,
-            "top_k": 0,
+            "chunk_size": CHUNK_SIZE,
+            "overlap_ratio": OVERLAP_RATIO,
+            "top_k": TOP_K
         }
 
         self.send_response(200)
