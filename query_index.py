@@ -85,15 +85,17 @@ def prepare_context_for_qa(index, embeddings_model, query_text: str, top_k: int,
 def run_query_in_model(context, system_prompt_path, user_query, chat_model):
     with open(system_prompt_path, 'r', encoding='utf-8') as f:
         system_prompt = f.read()
+
+    user_prompt = f"Context:\n{context}\n\nQuestion:\n{user_query}"
     
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Context:\n{context}\n\nQuestion:\n{user_query}"}
+        {"role": "user", "content": user_prompt}
     ]
     
     response = chat_model.invoke(messages)
     # print(response)
-    return response.content, system_prompt
+    return response.content, system_prompt, user_prompt
 
 def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
     """ Format output in the assignment-required JSON structure """
@@ -116,7 +118,7 @@ def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
     }
     return output
 
-def full_query_pipeline(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path):
+def full_query_pipeline_from_path(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path):
     """ Run the entire RAG pipeline from JSON question to formatted output """
     # load query
     with open(query_json_path, 'r') as f:
@@ -128,10 +130,10 @@ def full_query_pipeline(query_json_path, index, embeddings_model, system_prompt_
     context_str, retrieved_chunks = prepare_context_for_qa(index, embeddings_model, user_query, TOP_K, MAX_CHUNKS_PER_TALK)
 
     # run the model
-    response_text, system_prompt = run_query_in_model(context_str, system_prompt_path, user_query, chat_model)
+    response_text, system_prompt, user_prompt = run_query_in_model(context_str, system_prompt_path, user_query, chat_model)
 
     # format the final output
-    output_json = format_rag_response(response_text, retrieved_chunks, system_prompt, user_query)
+    output_json = format_rag_response(response_text, retrieved_chunks, system_prompt, user_prompt)
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(output_json, f, ensure_ascii=False, indent=2)
 
@@ -145,7 +147,9 @@ def multiple_queries_pipeline(query_json_dir, index, embeddings_model, system_pr
 
     for query_json_path in json_files:
         save_path = Path(save_dir) / Path(query_json_path).name
-        full_query_pipeline(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path)
+        full_query_pipeline_from_path(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path)
+
+
 
 def main():
     index = get_vector_index(PINECONE_INDEX)
