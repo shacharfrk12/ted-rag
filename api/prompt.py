@@ -1,4 +1,6 @@
 import json
+from http.server import BaseHTTPRequestHandler
+
 from create_index import (
     get_vector_index,
     PINECONE_INDEX,
@@ -10,7 +12,8 @@ from create_index import (
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from query_index import full_query_pipeline
 
-# ⚠️ Globals MAY be reused, but don’t rely on it
+
+# Globals (persist while server runs)
 _index = None
 _embeddings = None
 _chat = None
@@ -39,40 +42,51 @@ def _init_clients():
     return _index, _embeddings, _chat
 
 
-def handler(request):
-    try:
-        if request.method != "POST":
-            return {
-                "statusCode": 405,
-                "body": json.dumps({"error": "POST only"}),
-            }
+class handler(BaseHTTPRequestHandler):
+    """HTTP handler for RAG prompt requests."""
 
-        body = json.loads(request.body or "{}")
-        question = body.get("question")
+    def do_POST(self):
+        """Handle RAG prompt requests."""
 
-        if not question:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Missing 'question'"}),
-            }
+        if self.path != "/api/prompt":
+            self.send_response(404)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Not found"}).encode())
+            return
 
-        index, embeddings, chat = _init_clients()
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body or "{}")
 
-        result = full_query_pipeline(
-            question,
-            index,
-            embeddings,
-            "system_prompt.txt",
-            chat,
-        )
+            question = data.get("question")
+            if not question:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({"error": "Missing 'question'"}).encode()
+                )
+                return
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(result),
-        }
+            index, embeddings, chat = _init_clients()
 
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)}),
-        }
+            result = full_query_pipeline(
+                question,
+                index,
+                embeddings,
+                "system_prompt.txt",
+                chat,
+            )
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode())
+
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
