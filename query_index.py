@@ -119,10 +119,8 @@ def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
 
     return output_json
 
-def full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model) -> json:
+def full_query_pipeline(user_query, index, embeddings_model, system_prompt_path, chat_model) -> json:
     """ Run the entire RAG pipeline from JSON question to formatted output """
-
-    user_query = query_data["question"]
 
     # retrieve context
     context_str, retrieved_chunks = prepare_context_for_qa(index, embeddings_model, user_query, TOP_K, MAX_CHUNKS_PER_TALK)
