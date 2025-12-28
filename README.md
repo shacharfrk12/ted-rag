@@ -14,6 +14,7 @@ Repository structure
 	- `data/ted_talks_en-small.csv` — smaller sample CSV for quick tests.
 - `api/` — FastAPI application and related files:
 	- `api/prompt.py` — FastAPI app exposing the RAG endpoints (`POST /api/prompt`, `GET /api/stats`).
+	- `api/stats.py` — lightweight HTTP handler that returns the same stats (can run standalone for quick checks).
 	- `api/stats.json` — local stats/config output used by the API (if present).
 - `vercel.json` — Vercel deployment configuration (if you deploy the API to Vercel).
 
@@ -88,7 +89,18 @@ This project exposes two HTTP endpoints defined in `api/prompt.py`:
 	- Returns: the RAG pipeline response (chat + retrieved context).
 
 - `GET /api/stats`
-	- Returns basic config values used by the pipeline (chunk size, overlap ratio, top_k).
+	- Returns basic config values used by the pipeline (chunk size, overlap_ratio, top_k).
+	- Implementations:
+	  - FastAPI route in `api/prompt.py` (recommended when running the app with `uvicorn`).
+	  - Lightweight standalone handler in `api/stats.py` (uses `BaseHTTPRequestHandler`) — can be run directly for quick checks.
+
+	Example (run lightweight handler and curl):
+
+	```bash
+	python -c "from http.server import HTTPServer; from api.stats import handler; HTTPServer(('127.0.0.1',8001), handler).serve_forever()"
+
+	curl http://127.0.0.1:8001
+	```
 
 Run the FastAPI app locally using `uvicorn`:
 
@@ -201,5 +213,3 @@ curl -X POST "http://127.0.0.1:8000/api/prompt" -H "Content-Type: application/js
 Notes:
 	- `query_index.py` includes `full_query_pipeline` and `multiple_queries_pipeline`; `main()` runs the multiple-queries pipeline and writes outputs to `results/`.
 	- For single-query automation prefer calling `full_query_pipeline(...)` directly or using the FastAPI `POST /api/prompt` endpoint.
-
-
