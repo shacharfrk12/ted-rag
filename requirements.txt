@@ -1,8 +1,13 @@
-fastapi
-pandas
-python-dotenv
-tqdm
-langchain==0.1.124
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+pandas==2.2.2
+python-dotenv==1.0.0
+tqdm==4.66.1
 openai>=0.27.0
-pinecone>=2.2.1
-requests
+pinecone-client>=2.2.1
+requests>=2.31.0
+
+# Note: `langchain` removed because the environment previously failed resolving
+# `langchain==0.1.124`. This repo includes a local shim `langchain_openai.py` that
+# implements the small subset of embeddings/chat used here. If you prefer to use
+# `langchain` from PyPI instead, pin a known good version and add it back.
