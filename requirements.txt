@@ -1,5 +1,5 @@
 fastapi
-vicorn
+uvicorn
 pandas
 pydantic
 pinecone
