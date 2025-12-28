@@ -3,5 +3,5 @@ pandas
 python-dotenv
 langchain
 tqdm
-pinecone-client
+pinecone
 requests
