@@ -115,9 +115,11 @@ def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
             "User": user_prompt
         }
     }
-    return output
+    output_json = json.dumps(output, indent=4)  # indent makes it pretty-printed
 
-def full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model):
+    return output_json
+
+def full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model) -> json:
     """ Run the entire RAG pipeline from JSON question to formatted output """
 
     user_query = query_data["question"]
@@ -130,6 +132,7 @@ def full_query_pipeline(query_data, index, embeddings_model, system_prompt_path,
 
     # format the final output
     output_json = format_rag_response(response_text, retrieved_chunks, system_prompt, user_prompt)
+
     return output_json
 
 def full_query_pipeline_from_path(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path):
@@ -141,7 +144,6 @@ def full_query_pipeline_from_path(query_json_path, index, embeddings_model, syst
     output_json = full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model)
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(output_json, f, ensure_ascii=False, indent=2)
-
     return output_json
 
 
