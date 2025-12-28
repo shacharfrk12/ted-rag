@@ -94,7 +94,6 @@ def run_query_in_model(context, system_prompt_path, user_query, chat_model):
     ]
     
     response = chat_model.invoke(messages)
-    # print(response)
     return response.content, system_prompt, user_prompt
 
 def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
@@ -118,12 +117,9 @@ def format_rag_response(response, retrieved_chunks, system_prompt, user_prompt):
     }
     return output
 
-def full_query_pipeline_from_path(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path):
+def full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model):
     """ Run the entire RAG pipeline from JSON question to formatted output """
-    # load query
-    with open(query_json_path, 'r') as f:
-        query_data = json.load(f)
-    
+
     user_query = query_data["question"]
 
     # retrieve context
@@ -134,10 +130,20 @@ def full_query_pipeline_from_path(query_json_path, index, embeddings_model, syst
 
     # format the final output
     output_json = format_rag_response(response_text, retrieved_chunks, system_prompt, user_prompt)
+    return output_json
+
+def full_query_pipeline_from_path(query_json_path, index, embeddings_model, system_prompt_path, chat_model, save_path):
+    """ Run the entire RAG pipeline from JSON question to formatted output """
+    # load query
+    with open(query_json_path, 'r') as f:
+        query_data = json.load(f)
+    
+    output_json = full_query_pipeline(query_data, index, embeddings_model, system_prompt_path, chat_model)
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(output_json, f, ensure_ascii=False, indent=2)
 
     return output_json
+
 
 def multiple_queries_pipeline(query_json_dir, index, embeddings_model, system_prompt_path, chat_model, save_dir):
     

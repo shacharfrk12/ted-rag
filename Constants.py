@@ -12,5 +12,3 @@ SMALL_CSV_PATH = "data/ted_talks_en-small.csv"
 BIG_CSV_PATH = "data/ted_talks_en.csv"
 
 LEN_SMALL_CSV = 5
-
-METADATA_COLS_TO_DROP = ["all_speakers", "occupations", "about_speakers", "related_talks", "comments", "available_lang", "native_lang"]
