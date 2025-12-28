@@ -1,7 +1,8 @@
 fastapi
 pandas
 python-dotenv
-langchain>=0.1.0
 tqdm
-pinecone
+langchain==0.1.124
+openai>=0.27.0
+pinecone>=2.2.1
 requests
