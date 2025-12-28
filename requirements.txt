@@ -1,7 +1,7 @@
 fastapi
 pandas
 python-dotenv
-langchain
+langchain>=0.1.0
 tqdm
 pinecone
 requests
