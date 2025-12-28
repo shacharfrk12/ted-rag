@@ -4,6 +4,8 @@ from create_index import get_vector_index, PINECONE_INDEX, LLMOD_API_KEY, LLMOD_
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from query_index import full_query_pipeline, TOP_K, MAX_CHUNKS_PER_TALK
 import os
+from Constants import CHUNK_SIZE, OVERLAP_RATIO, TOP_K
+
 
 app = FastAPI()
 
@@ -33,12 +35,11 @@ async def api_prompt(req: PromptRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+    
 @app.get("/api/stats")
 async def api_stats():
     return {
-        "embedding_model": EMBEDDING_MODEL,
-        "llm_model": LLM_MODEL,
-        "pinecone_index": PINECONE_INDEX,
-        "top_k": TOP_K,
-        "max_chunks_per_talk": MAX_CHUNKS_PER_TALK
+        "chunk_size": CHUNK_SIZE,
+        "overlap_ratio": OVERLAP_RATIO,
+        "top_k": TOP_K
     }
