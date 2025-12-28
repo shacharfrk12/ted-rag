@@ -31,3 +31,14 @@ async def api_prompt(req: PromptRequest):
         return full_query_pipeline(req.question, index, embeddings_model, "system_prompt.txt", chat_model)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/api/stats")
+async def api_stats():
+    return {
+        "embedding_model": EMBEDDING_MODEL,
+        "llm_model": LLM_MODEL,
+        "pinecone_index": PINECONE_INDEX,
+        "top_k": TOP_K,
+        "max_chunks_per_talk": MAX_CHUNKS_PER_TALK
+    }
