@@ -1,5 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler
+from Constants import CHUNK_SIZE, OVERLAP_RATIO, TOP_K
 
 from create_index import (
     get_vector_index,
@@ -90,3 +91,16 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def do_GET(self):
+        response = {
+            "chunk_size": CHUNK_SIZE,
+            "overlap_ratio": OVERLAP_RATIO,
+            "top_k": TOP_K
+        }
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(result).encode())
+
